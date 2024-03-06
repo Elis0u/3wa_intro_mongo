@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
-import axios from 'axios';
+import { getDatas, addData, editData, deleteData } from './services/api.js';
+import DriverForm from './components/DriverForm';
+import DriverList from './components/DriverList';
+import TeamList from './components/TeamList';
 
 function App() {
     const [drivers, setDrivers] = useState([]);
@@ -9,32 +12,35 @@ function App() {
     const [selectedDriver, setSelectedDriver] = useState(null);
 
     useEffect(() => {
-        async function fetchData() {
+        const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/drivers');
+                const response = await getDatas('http://localhost:8080/drivers');
                 setDrivers(response.data);
             } catch (err) {
                 console.error("Erreur lors de la récupération des données des pilotes", err);
             }
-        }
+        };
         fetchData();
     }, []);
-
+    
     useEffect(() => {
-        async function fetchData() {
+        const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:8080/teams');
+                const response = await getDatas('http://localhost:8080/teams');
                 setTeams(response.data);
             } catch (err) {
-                console.error("Erreur lors de la récupération des données des pilotes", err);
+                console.error("Erreur lors de la récupération des données des équipes", err);
             }
-        }
+        };
         fetchData();
     }, []);
 
-    const toggleAddForm = (driver = null) => {
+    const toggleAddForm = () => {
         setShowAddForm(!showAddForm);
-        setSelectedDriver(driver);
+        // Réinitialiser le pilote sélectionné lorsque le formulaire est fermé ou un nouveau pilote est ajouté
+        if (showAddForm || !selectedDriver) {
+            setSelectedDriver(null);
+        }
     };
 
     const handleAddDriver = async (event) => {
@@ -48,14 +54,13 @@ function App() {
         try {
             let response;
             if (selectedDriver) {
-                response = await axios.put(`http://localhost:8080/drivers/${selectedDriver._id}`, driverData);
+                response = await editData(`http://localhost:8080/drivers/${selectedDriver._id}`, driverData);
                 setDrivers(drivers.map(driver => driver._id === selectedDriver._id ? response.data : driver));
-                console.log(selectedDriver._id)
             } else {
-                response = await axios.post('http://localhost:8080/drivers', driverData);
+                response = await addData('http://localhost:8080/drivers', driverData);
                 setDrivers([...drivers, response.data]);
             }
-            toggleAddForm(null);
+            toggleAddForm();
         } catch (err) {
             console.error("Erreur lors de la manipulation d'un pilote", err);
         }
@@ -73,7 +78,7 @@ function App() {
 
     const handleDelete = async (driverId) => {
         try {
-            await axios.delete(`http://localhost:8080/drivers/${driverId}`);
+            await deleteData(`http://localhost:8080/drivers/${driverId}`);
             const newDrivers = drivers.filter(driver => driver._id !== driverId);
             setDrivers(newDrivers);
         } catch (err) {
@@ -84,84 +89,12 @@ function App() {
     return (
         <>
             <h2>Pilotes</h2>
-            <button onClick={() => toggleAddForm()}>Ajouter un pilote</button>
-            {
-                showAddForm && (
-                    <div>
-                        <h2>{selectedDriver ? 'Éditer le pilote' : 'Ajouter un nouveau pilote'}</h2>
-                        <form onSubmit={handleAddDriver}>
-                            <input
-                                type="text"
-                                placeholder="First Name"
-                                name="first_name"
-                                required
-                                defaultValue={selectedDriver ? selectedDriver.first_name : ''}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Last Name"
-                                name="last_name"
-                                required
-                                defaultValue={selectedDriver ? selectedDriver.last_name : ''}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Team ID"
-                                name="teamId"
-                                required
-                                defaultValue={selectedDriver && selectedDriver.teamId ? selectedDriver.teamId._id : ''}
-                            />
-                            <button type="submit">{selectedDriver ? 'Mettre à jour' : 'Ajouter'}</button>
-                        </form>
-                    </div>
-                )
-            }
+            <button onClick={toggleAddForm}>Ajouter un pilote</button>
+            {showAddForm && <DriverForm selectedDriver={selectedDriver} onSubmit={handleAddDriver} onCancel={toggleAddForm} />}
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Team</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {drivers.map((driver) => (
-                        <tr key={driver._id}>
-                            <td>{driver.first_name}</td>
-                            <td>{driver.last_name}</td>
-                            <td>{driver.teamId.name}</td>
-                            <td>
-                                <button onClick={() => handleEdit(driver._id)}>Edit</button>
-                                <button onClick={() => handleDelete(driver._id)}>Delete</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <DriverList drivers={drivers} onEdit={handleEdit} onDelete={handleDelete} />
 
-            <h2>Teams</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Name</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {teams.map((team) => (
-                        <tr key={team._id}>
-                            <td>{team._id}</td>
-                            <td>{team.name}</td>
-                            <td>
-                                buttons edit et delete
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <TeamList teams={teams} />
         </>
     );
 }
