@@ -1,3 +1,5 @@
+/* CSS generé via chatGPT */
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -62,17 +64,7 @@ button:hover {
   opacity: 0.8;
 }
 
-.edit-button {
-  background-color: #4CAF50;
-  color: white;
-}
 
-.delete-button {
-  background-color: #F44336;
-  color: white;
-}
-
-/* Style supplémentaire pour améliorer la mise en page et l'espacement */
 .container {
   width: 80%;
   margin: auto;
@@ -87,7 +79,6 @@ td {
   word-wrap: break-word;
 }
 
-/* Amélioration responsive */
 @media screen and (max-width: 600px) {
   .container {
       width: 100%;
