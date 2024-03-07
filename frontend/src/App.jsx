@@ -4,10 +4,12 @@ import { getDatas, addData, editData, deleteData } from './services/api.js';
 import DriverForm from './components/DriverForm';
 import DriverList from './components/DriverList';
 import TeamList from './components/TeamList';
+import UserList from './components/UserList';
 
 function App() {
     const [drivers, setDrivers] = useState([]);
     const [teams, setTeams] = useState([]);
+    const [users, setUsers] = useState([]);
     const [showAddForm, setShowAddForm] = useState(false);
     const [selectedDriver, setSelectedDriver] = useState(null);
 
@@ -30,6 +32,18 @@ function App() {
                 setTeams(response.data);
             } catch (err) {
                 console.error("Erreur lors de la récupération des données des équipes", err);
+            }
+        };
+        fetchData();
+    }, []);
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await getDatas('http://localhost:8080/users');
+                setUsers(response.data);
+            } catch (err) {
+                console.error("Erreur lors de la récupération des données users", err);
             }
         };
         fetchData();
@@ -76,7 +90,7 @@ function App() {
         }
     };
 
-    const handleDelete = async (driverId) => {
+    const handleDeleteDriver = async (driverId) => {
         try {
             await deleteData(`http://localhost:8080/drivers/${driverId}`);
             const newDrivers = drivers.filter(driver => driver._id !== driverId);
@@ -86,15 +100,27 @@ function App() {
         }
     };
 
+    const handleDeleteUser = async (userId) => {
+        try {
+            await deleteData(`http://localhost:8080/users/${userId}`);
+            const delUser = users.filter(user => user._id !== userId);
+            setUsers(delUser);
+        } catch (err) {
+            console.error("Erreur lors de la suppression du user", err);
+        }
+    };
+
     return (
         <>
             <h2>Pilotes</h2>
             <button onClick={toggleAddForm}>Ajouter un pilote</button>
             {showAddForm && <DriverForm selectedDriver={selectedDriver} onSubmit={handleAddDriver} onCancel={toggleAddForm} />}
 
-            <DriverList drivers={drivers} onEdit={handleEdit} onDelete={handleDelete} />
+            <DriverList drivers={drivers} onEdit={handleEdit} onDelete={handleDeleteDriver} />
 
             <TeamList teams={teams} />
+
+            <UserList users={users} onDelete={handleDeleteUser}/>
         </>
     );
 }
