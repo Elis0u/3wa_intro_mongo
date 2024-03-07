@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import userRouter from "./routes/userRouter.js";
 import driverRouter from "./routes/driverRouter.js";
 import teamRouter from "./routes/teamRouter.js";
+import authRouter from "./routes/authRouter.js";
 import cors from 'cors'
 
 dotenv.config();
@@ -41,5 +42,6 @@ app.get("/", (req, res) => {
 app.use('/', userRouter)
 app.use('/', driverRouter)
 app.use('/', teamRouter)
+app.use('/', authRouter);
 
 app.listen(port, () => console.log("Server is running on port" + " " + port));
